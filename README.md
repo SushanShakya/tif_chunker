@@ -28,7 +28,7 @@ This challenge is the entry step for our Nepal AI & Computer Vision Bootcamp. Us
 
 * **Small sample (for quick testing):**
 
-
+![Flood cutout](ortho_preview.png)
 
 * **Full orthomosaics (Google Drive):**
 
