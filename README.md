@@ -19,6 +19,9 @@ This challenge is the entry step for our Nepal AI & Computer Vision Bootcamp. Us
 ### 💡If you have access to AI and can Vibe Code dont shy on using them, can give brownie points
 
 ---
+> [!IMPORTANT]
+> **This challenge is not a test of what you know—it's a window into how you work.** Any submission, even partial work or exploratory attempts, is valuable. We want to see your existing skills in action: how you approach problems, what tools you reach for, and how you apply your current knowledge to real-world challenges. Don't hesitate to submit even if your solution is incomplete—effort and thinking process matter more than perfect results.
+---
 
 
 ## 📊 Data
@@ -167,4 +170,4 @@ Open an **Issue** in this repo with a clear title (e.g., "Download issue – pre
 
 ---
 
-**Good luck—and thank you for your genuine interest.** 🌱
+**Good luck—and thank you for your genuine interest.** 
