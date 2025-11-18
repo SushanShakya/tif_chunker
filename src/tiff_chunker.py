@@ -54,25 +54,56 @@ class TiffChunker:
         tile = src.read(window=window)
         return tile
 
-    def chunk(self):
-        for i in range(0, self.src.height, self.tile_size):
-            for j in range(0, self.src.width, self.tile_size):
+    def total_chunks_possible(self, window=None):
+        row_start = 0
+        row_stop = self.src.height
+        col_start = 0
+        col_stop = self.src.width
+
+        if window is not None:
+            row_start = int(window.row_off)
+            row_stop = int(window.row_off + window.height)
+            col_start = int(window.col_off)
+            col_stop = int(window.col_off + window.width)
+
+        count = 0
+
+        for i in range(row_start, row_stop, self.tile_size):
+            for j in range(col_start, col_stop, self.tile_size):
+                count += 1
+
+        return count
+
+    def chunk(self, window=None):
+        row_start = 0
+        row_stop = self.src.height
+        col_start = 0
+        col_stop = self.src.width
+
+        if window is not None:
+            row_start = int(window.row_off)
+            row_stop = int(window.row_off + window.height)
+            col_start = int(window.col_off)
+            col_stop = int(window.col_off + window.width)
+
+        for i in range(row_start, row_stop, self.tile_size):
+            for j in range(col_start, col_stop, self.tile_size):
                 tile = self.create_tile(i, j)
                 if self.is_blank(tile):
                     continue
                 yield i, j, tile
 
-    def __chunk_and_save(self, on_save, limit=None):
+    def __chunk_and_save(self, on_save, window=None, limit=None):
         count = 0
-        chunks = self.chunk()
+        chunks = self.chunk(window)
         for i, j, tile in chunks:
             on_save(i, j, tile)
             count += 1
             if count == limit:
                 break
 
-    def chunk_and_save(self, limit=None):
-        self.__chunk_and_save(self.save_as_png, limit=limit)
+    def chunk_and_save_png(self, window=None, limit=None):
+        self.__chunk_and_save(self.save_as_png, window=window, limit=limit)
 
     def save_as_tif(self, i, j, tile):
         window = self.create_window(i, j)
@@ -94,20 +125,5 @@ class TiffChunker:
         with rasterio.open(out_name, "w", **profile) as dst:
             dst.write(tile)
 
-    def chunk_and_save_tif(self, limit=None):
-        self.__chunk_and_save(self.save_as_tif, limit=limit)
-
-    # def chunk_and_save(self):
-    #     for i in range(0, self.src.height, self.tile_size):
-    #         for j in range(0, self.src.width, self.tile_size):
-    #             tile = self.create_tile(i, j)
-    #             transform = self.src.window_transform(window)
-
-    #             profile = self.src.profile.copy()
-    #             profile.update(
-    #                 {"height": win_height, "width": win_width, "transform": transform}
-    #             )
-
-    #             out_name = os.path.join(self.out_dir, f"img/tile_{i}_{j}.tif")
-    #             with rasterio.open(out_name, "w", **profile) as dst:
-    #                 dst.write(tile)
+    def chunk_and_save_tif(self, window=None, limit=None):
+        self.__chunk_and_save(self.save_as_tif, window=window, limit=limit)
