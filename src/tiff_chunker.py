@@ -45,7 +45,7 @@ class TiffChunker:
 
         return all_blank or has_blank
 
-    def save_as_png(self, i, j, tile, *args):
+    def save_as_png(self, i, j, tile, meta):
         tile = np.transpose(tile, (1, 2, 0))
 
         # Ensure dtype is uint8
@@ -104,9 +104,21 @@ class TiffChunker:
         for i in range(row_start, row_stop, self.tile_size):
             for j in range(col_start, col_stop, self.tile_size):
                 tile = self.create_tile(i, j)
+                transform = self.src.window_transform(window)
+
+                meta = self.src.profile.copy()
+                win_width = min(self.tile_size, self.src.width - j)
+                win_height = min(self.tile_size, self.src.height - i)
+                meta.update(
+                    {
+                        "height": win_height,
+                        "width": win_width,
+                        "transform": transform,
+                    }
+                )
                 if self.is_blank(tile):
                     continue
-                yield i, j, tile, None
+                yield i, j, tile, meta
 
     def get_files(self, directory):
         all_files = os.listdir(directory)  # gets all files and folders
@@ -176,33 +188,10 @@ class TiffChunker:
     def chunk_and_save_png(self, window=None, limit=None):
         self.__chunk_and_save(self.save_as_png, window=window, limit=limit)
 
-    def save_as_tif(self, i, j, tile, *args):
-        window = self.create_window(i, j)
-        transform = self.src.window_transform(window)
-
-        profile = self.src.profile.copy()
-        win_width = min(self.tile_size, self.src.width - j)
-        win_height = min(self.tile_size, self.src.height - i)
-
-        profile.update(
-            {
-                "height": win_height,
-                "width": win_width,
-                "transform": transform,
-            }
-        )
-
-        out_name = os.path.join(self.out_dir, f"meta/tile_{i}_{j}.tif")
-        with rasterio.open(out_name, "w", **profile) as dst:
-            dst.write(tile)
-
-    def save_tif_reference(self, i, j, tile, meta):
+    def save_as_tif(self, i, j, tile, meta):
         out_name = os.path.join(self.out_dir, f"meta/tile_{i}_{j}.tif")
         with rasterio.open(out_name, "w", **meta) as dst:
             dst.write(tile)
 
     def chunk_and_save_tif(self, window=None, limit=None):
-        if self.reference_path is not None:
-            self.__chunk_and_save(self.save_tif_reference, window=window, limit=limit)
-            return
         self.__chunk_and_save(self.save_as_tif, window=window, limit=limit)
