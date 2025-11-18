@@ -96,7 +96,7 @@ class TiffChunker:
 
     def get_files(self, directory):
         all_files = os.listdir(directory)  # gets all files and folders
-        return [os.path.join(directory, f) for f in all_files]
+        return [os.path.join(directory, f) for f in all_files if f.endswith(".tif")]
 
     def is_within_bounds(self, bounds):
         tb = bounds
