@@ -16,12 +16,12 @@ def main():
     w1, w2 = c.compute()
 
     c1 = TiffChunker(pre, pre_out)
-    c1.chunk_and_save_tif(window=w1, limit=limit)
+    # c1.chunk_and_save_tif(window=w1, limit=limit)
     c1.chunk_and_save_png(window=w1, limit=limit)
     # print(c1.total_chunks_possible(w1))
 
-    c1 = TiffChunker(post, post_out)
-    c1.chunk_and_save_tif(window=w2, limit=limit)
+    c1 = TiffChunker(post, post_out, reference_path=f"{pre_out}/img")
+    # c1.chunk_and_save_tif(window=w2, limit=limit)
     c1.chunk_and_save_png(window=w2, limit=limit)
     # print(c1.total_chunks_possible(w2))
 

@@ -1,5 +1,5 @@
 import rasterio
-from rasterio.windows import Window
+from rasterio.windows import Window, from_bounds
 import numpy as np
 from PIL import Image
 import json
@@ -7,11 +7,12 @@ import os
 
 
 class TiffChunker:
-    def __init__(self, tiff_path, out_dir, tile_size=1024):
+    def __init__(self, tiff_path, out_dir, reference_path=None, tile_size=1024):
         self.tiff_path = tiff_path
         self.tile_size = tile_size
         self.src = rasterio.open(self.tiff_path)
         self.out_dir = out_dir
+        self.reference_path = reference_path
 
     def src_info(self):
         print(self.src.count)
@@ -74,7 +75,7 @@ class TiffChunker:
 
         return count
 
-    def chunk(self, window=None):
+    def __chunk(self, window=None):
         row_start = 0
         row_stop = self.src.height
         col_start = 0
@@ -92,6 +93,60 @@ class TiffChunker:
                 if self.is_blank(tile):
                     continue
                 yield i, j, tile
+
+    def get_files(self, directory):
+        all_files = os.listdir(directory)  # gets all files and folders
+        return [os.path.join(directory, f) for f in all_files]
+
+    def is_within_bounds(self, bounds):
+        tb = bounds
+        post_bounds = self.src.bounds
+        return (
+            tb.left < post_bounds.right
+            and tb.right > post_bounds.left
+            and tb.bottom < post_bounds.top
+            and tb.top > post_bounds.bottom
+        )
+
+    def __create_reference_tile(self, bounds):
+        tb = bounds
+        post_src = self.src
+        window = from_bounds(tb.left, tb.bottom, tb.right, tb.top, post_src.transform)
+        tile = post_src.read(window=window)
+        meta = post_src.meta.copy()
+        meta.update(
+            {
+                "height": tile.shape[1],
+                "width": tile.shape[2],
+                "transform": rasterio.windows.transform(window, post_src.transform),
+            }
+        )
+        return tile
+
+    def extract_i_j_from_filepath(self, file):
+        filename = file.split("/")[-1]
+        tmp = filename.split(".")[0].split("_")
+        i = int(tmp[1])
+        j = int(tmp[2])
+        return i, j
+
+    def __chunk_with_reference(self):
+        files = self.get_files(self.reference_path)
+
+        for file in files:
+            i, j = self.extract_i_j_from_filepath(file)
+
+            with rasterio.open(file) as t:
+                bounds = t.bounds
+
+            if self.is_within_bounds(bounds):
+                tile = self.__create_reference_tile(bounds)
+                yield i, j, tile
+
+    def chunk(self, window=None):
+        if self.reference_path is not None:
+            return self.__chunk_with_reference()
+        return self.__chunk(window)
 
     def __chunk_and_save(self, on_save, window=None, limit=None):
         count = 0
