@@ -6,22 +6,26 @@ import numpy as np
 
 
 def main():
-    limit = 10
+    limit = 100
+    # limit = None
     pre = "assets/pre_flood.tif"
     pre_out = "chunks/pre"
     post = "assets/post_flood.tif"
     post_out = "chunks/post"
 
-    c = IntersectionWindowComputer(pre, post)
-    w1, w2 = c.compute()
+    # c = IntersectionWindowComputer(pre, post)
+    # w1, w2 = c.compute()
+
+    w1 = None
+    w2 = None
 
     c1 = TiffChunker(pre, pre_out)
-    # c1.chunk_and_save_tif(window=w1, limit=limit)
+    c1.chunk_and_save_tif(window=w1, limit=limit)
     c1.chunk_and_save_png(window=w1, limit=limit)
     # print(c1.total_chunks_possible(w1))
 
-    c1 = TiffChunker(post, post_out, reference_path=f"{pre_out}/img")
-    # c1.chunk_and_save_tif(window=w2, limit=limit)
+    c1 = TiffChunker(post, post_out, reference_path=f"{pre_out}/meta")
+    c1.chunk_and_save_tif(window=w2, limit=limit)
     c1.chunk_and_save_png(window=w2, limit=limit)
     # print(c1.total_chunks_possible(w2))
 
