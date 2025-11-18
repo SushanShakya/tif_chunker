@@ -10,8 +10,8 @@ def main():
 
     TILE_SIZE = 1024
 
-    limit = 10
-    # limit = None
+    # limit = 10
+    limit = None
     pre = "assets/pre_flood.tif"
     pre_out = "chunks/pre"
     post = "assets/post_flood.tif"

@@ -2,3 +2,7 @@ venv
 assets
 chunks
 __pycache__
+*.zip
+*.sqlite
+*.db
+.DS_Store
