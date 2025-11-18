@@ -1,3 +1,4 @@
+from src.single_chunk_cleaner import SingleChunkCleaner
 from src.intersection_window_computer import IntersectionWindowComputer
 from src.projection_syncer import ProjectionSyncer
 from src.alignment_checker import AlignmentChecker
@@ -31,6 +32,8 @@ def main():
     )
     c1.chunk_and_save_tif(window=w2, limit=limit)
     c1.chunk_and_save_png(window=w2, limit=limit)
+
+    SingleChunkCleaner(pre_out, post_out).clean()
 
 
 if __name__ == "__main__":

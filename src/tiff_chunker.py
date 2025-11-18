@@ -104,6 +104,7 @@ class TiffChunker:
         for i in range(row_start, row_stop, self.tile_size):
             for j in range(col_start, col_stop, self.tile_size):
                 tile = self.create_tile(i, j)
+                window = self.create_window(i, j)
                 transform = self.src.window_transform(window)
 
                 meta = self.src.profile.copy()
