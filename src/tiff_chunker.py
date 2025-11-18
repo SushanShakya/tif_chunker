@@ -17,6 +17,19 @@ class TiffChunker:
         print(self.src.count)
         print(self.src.shape)
 
+    def is_blank(self, tile):
+        r = tile[0, :, :]
+        g = tile[1, :, :]
+        b = tile[2, :, :]
+        a = tile[3, :, :]
+
+        return (
+            np.all(r == 255)
+            and np.all(g == 255)
+            and np.all(b == 255)
+            and np.all(a == 0)
+        )
+
     def save_as_png(self, i, j, tile):
         tile = np.transpose(tile, (1, 2, 0))
 
@@ -28,24 +41,16 @@ class TiffChunker:
         out_name = os.path.join(self.out_dir, f"img/tile_{i}_{j}.png")
         img.save(out_name)
 
-    # def save_as_tiff(self, tile):
-    #     transform = src.window_transform(window)
-
-    #     profile = src.profile.copy()
-    #     profile.update(
-    #         {"height": win_height, "width": win_width, "transform": transform}
-    #     )
-
-    #     out_name = os.path.join(output_dir, f"img/tile_{i}_{j}.tif")
-    #     with rasterio.open(out_name, "w", **profile) as dst:
-    #         dst.write(tile)
-
-    def create_tile(self, i, j):
+    def create_window(self, i, j):
         src = self.src
         tile_size = self.tile_size
         win_width = min(tile_size, src.width - j)
         win_height = min(tile_size, src.height - i)
-        window = Window(j, i, win_width, win_height)
+        return Window(j, i, win_width, win_height)
+
+    def create_tile(self, i, j):
+        src = self.src
+        window = self.create_window(i, j)
         tile = src.read(window=window)
         return tile
 
@@ -53,4 +58,56 @@ class TiffChunker:
         for i in range(0, self.src.height, self.tile_size):
             for j in range(0, self.src.width, self.tile_size):
                 tile = self.create_tile(i, j)
-                yield tile
+                if self.is_blank(tile):
+                    continue
+                yield i, j, tile
+
+    def __chunk_and_save(self, on_save, limit=None):
+        count = 0
+        chunks = self.chunk()
+        for i, j, tile in chunks:
+            on_save(i, j, tile)
+            count += 1
+            if count == limit:
+                break
+
+    def chunk_and_save(self, limit=None):
+        self.__chunk_and_save(self.save_as_png, limit=limit)
+
+    def save_as_tif(self, i, j, tile):
+        window = self.create_window(i, j)
+        transform = self.src.window_transform(window)
+
+        profile = self.src.profile.copy()
+        win_width = min(self.tile_size, self.src.width - j)
+        win_height = min(self.tile_size, self.src.height - i)
+
+        profile.update(
+            {
+                "height": win_height,
+                "width": win_width,
+                "transform": transform,
+            }
+        )
+
+        out_name = os.path.join(self.out_dir, f"meta/tile_{i}_{j}.tif")
+        with rasterio.open(out_name, "w", **profile) as dst:
+            dst.write(tile)
+
+    def chunk_and_save_tif(self, limit=None):
+        self.__chunk_and_save(self.save_as_tif, limit=limit)
+
+    # def chunk_and_save(self):
+    #     for i in range(0, self.src.height, self.tile_size):
+    #         for j in range(0, self.src.width, self.tile_size):
+    #             tile = self.create_tile(i, j)
+    #             transform = self.src.window_transform(window)
+
+    #             profile = self.src.profile.copy()
+    #             profile.update(
+    #                 {"height": win_height, "width": win_width, "transform": transform}
+    #             )
+
+    #             out_name = os.path.join(self.out_dir, f"img/tile_{i}_{j}.tif")
+    #             with rasterio.open(out_name, "w", **profile) as dst:
+    #                 dst.write(tile)
