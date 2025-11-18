@@ -24,12 +24,26 @@ class TiffChunker:
         b = tile[2, :, :]
         a = tile[3, :, :]
 
-        return (
+        all_blank = (
             np.all(r == 255)
             and np.all(g == 255)
             and np.all(b == 255)
             and np.all(a == 0)
         )
+
+        w = r == 255
+        x = g == 255
+        y = b == 255
+        z = a == 0
+
+        a = w == w
+        b = a == x
+        c = b == y
+        d = c == z
+
+        has_blank = np.any(d)
+
+        return all_blank or has_blank
 
     def save_as_png(self, i, j, tile):
         tile = np.transpose(tile, (1, 2, 0))
@@ -141,6 +155,8 @@ class TiffChunker:
 
             if self.is_within_bounds(bounds):
                 tile = self.__create_reference_tile(bounds)
+                if self.is_blank(tile):
+                    continue
                 yield i, j, tile
 
     def chunk(self, window=None):
