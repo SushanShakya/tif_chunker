@@ -1,3 +1,4 @@
+from src.chunk_sticher import ChunkSticher
 from src.single_chunk_cleaner import SingleChunkCleaner
 from src.intersection_window_computer import IntersectionWindowComputer
 from src.projection_syncer import ProjectionSyncer
@@ -34,6 +35,18 @@ def main():
     c1.chunk_and_save_png(window=w2, limit=limit)
 
     SingleChunkCleaner(pre_out, post_out).clean()
+
+    ## ---- SECTION : Stiching Chunks Together -----
+
+    # ChunkSticher(
+    #     input_dir_path=f"{pre_out}/meta", out_path="chunks/pre/stiched"
+    # ).stich()
+
+    # ChunkSticher(
+    #     input_dir_path=f"{post_out}/meta", out_path="chunks/post/stiched"
+    # ).stich()
+
+    ## ---- SECTION END -----
 
 
 if __name__ == "__main__":
