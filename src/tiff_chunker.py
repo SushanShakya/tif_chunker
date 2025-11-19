@@ -1,3 +1,4 @@
+from pathlib import Path
 import rasterio
 from rasterio.windows import Window, from_bounds
 import numpy as np
@@ -71,6 +72,8 @@ class TiffChunker:
         # Save as PNG
         img = Image.fromarray(tile)
         out_name = os.path.join(self.out_dir, f"img/tile_{i}_{j}.png")
+        if Path(out_name).is_file():
+            return
         img.save(out_name)
 
     def create_window(self, i, j):
@@ -208,6 +211,8 @@ class TiffChunker:
 
     def save_as_tif(self, i, j, tile, meta):
         out_name = os.path.join(self.out_dir, f"meta/tile_{i}_{j}.tif")
+        if Path(out_name).is_file():
+            return
         with rasterio.open(out_name, "w", **meta) as dst:
             dst.write(tile)
 
