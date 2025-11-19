@@ -59,7 +59,9 @@ class TiffChunker:
         c = b == y
         d = c == z
 
-        has_blank = np.any(d)
+        # has_blank = np.any(d)
+        # has_blank = False
+        has_blank = d.mean() >= 0.4
 
         return all_blank or has_blank
 
