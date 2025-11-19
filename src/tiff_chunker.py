@@ -18,7 +18,12 @@ class TiffChunker:
     def check_and_create_required_dir(self):
         from pathlib import Path
 
-        paths = [self.out_dir, self.reference_path]
+        paths = [
+            self.out_dir,
+            f"{self.out_dir}/img",
+            f"{self.out_dir}/meta",
+            self.reference_path,
+        ]
 
         for path in paths:
             if path is None:
