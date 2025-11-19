@@ -13,6 +13,18 @@ class TiffChunker:
         self.src = rasterio.open(self.tiff_path)
         self.out_dir = out_dir
         self.reference_path = reference_path
+        self.check_and_create_required_dir()
+
+    def check_and_create_required_dir(self):
+        from pathlib import Path
+
+        paths = [self.out_dir, self.reference_path]
+
+        for path in paths:
+            if path is None:
+                continue
+            folder = Path(path)
+            folder.mkdir(parents=True, exist_ok=True)
 
     def src_info(self):
         print(self.src.count)
